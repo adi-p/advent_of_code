@@ -18,6 +18,17 @@ let _2sum n list =
 
     _2sum_helper n list Map.empty
 
+let _3sum n list =
+    let rec _3sum_helper n list seen = 
+        match list with
+        | [] -> None
+        | (x::xs) ->
+            let diff = n - x
+            match _2sum diff seen with
+            | Some(i,j) -> Some (x,i,j)
+            | None -> _3sum_helper n xs (x::seen)
+
+    _3sum_helper n list []
 
 
 [<EntryPoint>]
@@ -34,10 +45,10 @@ let main argv =
         let result = 
             readlines
             |> Array.toList
-            |> _2sum GOAL
+            |> _3sum GOAL
         
         match result with
         | None -> Printf.eprintf "No matches found"
-        | Some (n1, n2) ->
-            printfn "%d * %d = %d" n1 n2 (n1 * n2)
+        | Some (n1, n2, n3) ->
+            printfn "%d * %d * %d = %d" n1 n2 n3 (n1 * n2 * n3)
     0
