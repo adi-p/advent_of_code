@@ -10,20 +10,18 @@ type PaswordEntry = {
     Password : string
 }
 
-// let newPasswordEntry letter min max password =
-//     {
-//         RequiredLetter = letter
-//         Min = min
-//         Max = max
-//         Password = password
-//     }
-
-let isValid entry =
+let isValid_old entry =
     let count = 
         entry.Password
         |> String.filter (fun c -> c = entry.RequiredLetter)
         |> String.length
     (count >= entry.Min) && (count <= entry.Max)
+
+let isValid entry =
+    let cond1 = entry.Password.[entry.Min - 1] = entry.RequiredLetter
+    let cond2 = entry.Password.[entry.Max - 1] = entry.RequiredLetter
+    (not(cond1 && cond2)) && (cond1 || cond2)
+
 
 // this function assumes quite a bit of things 
 let parse_line line =
