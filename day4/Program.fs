@@ -40,22 +40,22 @@ let fieldToAbriviation = function
 
 let isValid fields =
     let parseField str =
-        let r = new Regex("([^\s]*):[^\s]*")
+        let r = new Regex("([^\s]*):([^\s]*)")
         let m = r.Match str
-        let abrv = (m.Groups |> Array.ofSeq).[1].Value
-        abrv
-    let makeMap m field = Map.add field field m
+        let groupVals = m.Groups |> Array.ofSeq |> Array.map (fun g -> g.Value)
+        (groupVals.[1], groupVals.[2])
+
     let rec checkRequired requiredList map =
         match requiredList with
         | (x::xs) ->
             match Map.tryFind x map with
-            | Some(_) -> checkRequired xs map
+            | Some(_) -> checkRequired xs map // Should do validation for each field here.
             | None -> false
         | [] -> true
 
     fields
     |> List.map parseField
-    |> List.fold (makeMap) Map.empty
+    |> List.fold (fun m (field, value) -> Map.add field value m) Map.empty
     |> checkRequired (List.map fieldToAbriviation (Field.GetRequired()) )
 
 
@@ -84,7 +84,6 @@ let main argv =
     let file = argv.[0]
     
     let passport = file |> parseFile
-        
         
     printfn "Valid passport count: %d" (passport |> List.filter isValid |> List.length)
 
