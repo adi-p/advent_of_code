@@ -28,6 +28,18 @@ let getSeatId (str : string) =
     let col = getCol str.[7..] 0 8
     (row * COL_COUNT) + col
 
+let findMissingSeat seatIds = // Maybe consider using Some/None monad
+    let seatIds = seatIds |> List.sort
+    let rec findMissingSeatHelper seatIds prevSeat = 
+        match seatIds with
+        | (hd::tl) -> 
+            if (hd = (prevSeat + 2)) then
+                hd - 1
+            else 
+                findMissingSeatHelper tl hd            
+        | [] -> failwith "no missing seatId"
+    findMissingSeatHelper seatIds.Tail seatIds.Head
+
 [<EntryPoint>]
 let main argv =
     
@@ -39,5 +51,6 @@ let main argv =
         |> List.map getSeatId
 
     printfn "The highest seat ID is: %d" (seatIds |> List.fold max 0 )
+    printfn "The missing seat Id is %d" (seatIds |> findMissingSeat)
 
     0 // return an integer exit code
