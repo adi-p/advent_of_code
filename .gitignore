@@ -1,2 +1,4 @@
 /day*/bin/
 /day*/obj/
+.fake
+.ionide
