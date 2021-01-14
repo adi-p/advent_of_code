@@ -13,6 +13,9 @@ and BagContent =
     | Empty
     | Bags of (int * string) list
 
+
+// Note: I am assuming these graphs are Directed acyclic graphs (DAGs)
+
 let findAllPossibleParents goalBag bagMap =
     let rec findHelper (canReachGoal ,seenMap) bag =
         if bag = goalBag then
@@ -38,6 +41,30 @@ let findAllPossibleParents goalBag bagMap =
 
     let (_ , seenMap ) = Map.fold (fun acc b _ -> findHelper acc b) (false, Map.empty) bagMap
     seenMap |> Map.toList |> List.filter (fun (_, reach) -> reach) |> List.map fst
+
+let countContent bag bagMap =
+    // let rec countContentHelper count (amount, name) =
+    //     match Map.find name bagMap with
+    //     | Empty -> count + amount
+    //     | Bags childBags ->
+    //         let childcount = 
+    //             List.fold (fun acc (camount, cname) ->
+    //                 acc + (camount * )
+    //             )
+    //         count + ((childcount + 1) * amount)
+        
+    
+    // This is not tail recursive...
+    let rec countContentHelper bag =
+        match Map.find bag bagMap with
+        | Empty -> 1
+        | Bags childBags ->
+            List.fold (fun acc (n, cbag) ->
+                   acc + (n * countContentHelper cbag)
+                ) 1 childBags
+    (countContentHelper bag) - 1    
+
+
 
 
 // Note: we assume that the input is correctly formatted (I'm ignoring warnings :/ )
@@ -83,7 +110,10 @@ let main argv =
     let goalBag = "shiny gold"
 
     let possibleParents = findAllPossibleParents goalBag bagMap
+    let totalInside = countContent goalBag bagMap
 
-    printfn "Total: %d" <| List.length possibleParents    
+    printfn "Total parent count: %d" <| List.length possibleParents    
+
+    printfn "Toal inside: %d" totalInside
 
     0 // return an integer exit code
