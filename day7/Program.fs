@@ -43,26 +43,25 @@ let findAllPossibleParents goalBag bagMap =
     seenMap |> Map.toList |> List.filter (fun (_, reach) -> reach) |> List.map fst
 
 let countContent bag bagMap =
-    // let rec countContentHelper count (amount, name) =
-    //     match Map.find name bagMap with
-    //     | Empty -> count + amount
-    //     | Bags childBags ->
-    //         let childcount = 
-    //             List.fold (fun acc (camount, cname) ->
-    //                 acc + (camount * )
-    //             )
-    //         count + ((childcount + 1) * amount)
+    let rec countContentHelper count (amount, name) =
+        match Map.find name bagMap with
+        | Empty -> count + amount
+        | Bags childBags ->
+            List.fold (fun acc (camount, cname) -> countContentHelper acc (camount*amount, cname)) 
+                (count + amount) childBags
         
     
     // This is not tail recursive...
-    let rec countContentHelper bag =
-        match Map.find bag bagMap with
-        | Empty -> 1
-        | Bags childBags ->
-            List.fold (fun acc (n, cbag) ->
-                   acc + (n * countContentHelper cbag)
-                ) 1 childBags
-    (countContentHelper bag) - 1    
+    // let rec countContentHelper bag =
+    //     match Map.find bag bagMap with
+    //     | Empty -> 1
+    //     | Bags childBags ->
+    //         List.fold (fun acc (n, cbag) ->
+    //                acc + (n * countContentHelper cbag)
+    //             ) 1 childBags
+    // (countContentHelper bag) - 1    
+
+    (countContentHelper 0 (1, bag)) - 1
 
 
 
