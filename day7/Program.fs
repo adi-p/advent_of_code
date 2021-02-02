@@ -15,7 +15,7 @@ and BagContent =
 
 
 // Note: I am assuming these graphs are Directed acyclic graphs (DAGs)
-
+// Try and clean this up if possible
 let findAllPossibleParents goalBag bagMap =
     let rec findHelper (canReachGoal ,seenMap) bag =
         if bag = goalBag then

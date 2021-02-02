@@ -6,6 +6,7 @@ let updateMap updater (defaultVal : 'Value) (key : 'Key) (map : Map<'Key, 'Value
     | None -> Map.add key defaultVal map
     | Some i -> Map.add key (updater i) map
 
+// TODO: this could probably be done with a zip -> map -> fold. It would be more elegant
 let countDifferences (adapters : int array) =
     let rec countDiffHelper index map =
         if index >= adapters.Length then
