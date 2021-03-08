@@ -12,10 +12,12 @@ and Direction =
     | Right
     | Forward
 
-type BoatInformation = {
+type BoatState = {
     Orientation : Direction
     Coordinates : int * int
 }
+with
+    static member Initial = { Orientation = East; Coordinates = (0,0)}
 
 let turn90Deg = function
     | North -> East
@@ -24,63 +26,45 @@ let turn90Deg = function
     | West -> North
     | _ -> failwith "incorrect orientation provided"
 
-let rec updatePosition boatInfo action =
-    let (x,y) = boatInfo.Coordinates 
+let rec updatePosition boatState action =
+    let (x,y) = boatState.Coordinates 
     match action with
-    | (Forward, n) -> updatePosition boatInfo (boatInfo.Orientation, n)
-    | (North , n) -> { boatInfo with Coordinates = (x, y + n)}
-    | (South, n) -> { boatInfo with Coordinates = (x, y - n)}
-    | (East, n) -> { boatInfo with Coordinates = (x + n, y)}
-    | (West, n) -> { boatInfo with Coordinates = (x - n, y)}
+    | (Forward, n) -> updatePosition boatState (boatState.Orientation, n)
+    | (North , n) -> { boatState with Coordinates = (x, y + n)}
+    | (South, n) -> { boatState with Coordinates = (x, y - n)}
+    | (East, n) -> { boatState with Coordinates = (x + n, y)}
+    | (West, n) -> { boatState with Coordinates = (x - n, y)}
     
     | (turnDirection, n) -> 
         // normalize the turn to be a Right turn
         let n = if turnDirection = Left then 360 - n 
                 else n
         let rotationCount = (n % 360) / 90
-        let newOrientation = List.fold (fun orient _ -> turn90Deg orient) boatInfo.Orientation [1 .. rotationCount] //this is a little sketch
-        { boatInfo with Orientation = newOrientation}
+        let newOrientation = List.fold (fun orient _ -> turn90Deg orient) boatState.Orientation [1 .. rotationCount] //this is a little sketch
+        { boatState with Orientation = newOrientation}
 
 
 let turnWaypoint (wpx, wpy) = (wpy, -1 * wpx)
 
-let rec updatePosition2 boatInfo waypointInfo action =
-    let (wpx, wpy) = waypointInfo
+let rec updatePosition2 (state : {| BoatState : int*int; WaypointState: int*int |})  action =
+    let (wpx, wpy) = state.WaypointState
     match action with
     | (Forward, n) -> 
-        let (bx,by) = boatInfo
-        {| BoatInfo = (bx + (n*wpx), by + (n*wpy)); WaypointInfo = waypointInfo |}
-    | (North , n) -> {| BoatInfo = boatInfo; WaypointInfo = (wpx, wpy + n) |}  
-    | (South, n) ->  {| BoatInfo = boatInfo; WaypointInfo = (wpx, wpy - n) |}
-    | (East, n) -> {| BoatInfo = boatInfo; WaypointInfo = (wpx + n, wpy) |}
-    | (West, n) -> {| BoatInfo = boatInfo; WaypointInfo = (wpx - n, wpy) |}
+        let (bx,by) = state.BoatState
+        {| BoatState = (bx + (n*wpx), by + (n*wpy)); WaypointState = state.WaypointState |}
+    | (North , n) -> {| BoatState = state.BoatState; WaypointState = (wpx, wpy + n) |}  
+    | (South, n) ->  {| BoatState = state.BoatState; WaypointState = (wpx, wpy - n) |}
+    | (East, n) -> {| BoatState = state.BoatState; WaypointState = (wpx + n, wpy) |}
+    | (West, n) -> {| BoatState = state.BoatState; WaypointState = (wpx - n, wpy) |}
     | (turnDirection, n) ->
         // normalize the turn to be a Right turn
         let n = if turnDirection = Left then 360 - n 
                 else n
         let rotationCount = (n % 360) / 90
-        let newWaypointInfo = List.fold (fun wpi _ -> turnWaypoint wpi) waypointInfo  [1 .. rotationCount]
-        {| BoatInfo = boatInfo; WaypointInfo = newWaypointInfo |}
+        let newWaypointState = List.fold (fun wpi _ -> turnWaypoint wpi) state.WaypointState  [1 .. rotationCount]
+        {| BoatState = state.BoatState; WaypointState = newWaypointState |}
 
-let getFinalCoordinates actions =
-    let rec applyActions boatInfo actions  =
-        match actions with
-        | [] -> boatInfo.Coordinates
-        | firstAction::rest ->
-            let newBoatInfo = updatePosition boatInfo firstAction
-            applyActions newBoatInfo rest
-    applyActions { Orientation = East; Coordinates = (0,0)} (List.ofSeq actions)
-
-let getFinalCoordinates2 actions =
-    let rec applyActions2 boatInfo waypointInfo actions =
-        match actions with
-        | [] -> boatInfo
-        | firstAction::rest ->
-            let newInfos = updatePosition2 boatInfo waypointInfo firstAction
-            applyActions2 newInfos.BoatInfo newInfos.WaypointInfo rest
-   
-    applyActions2 (0,0) (10,1) (Seq.toList actions)
-
+    
 let parseLine (line : string) =
     let r = Regex("(?<Direction>[NSEWLRF])(?<Number>\d+)")
     let m = r.Match line
@@ -102,13 +86,18 @@ let main argv =
     
     let file = argv.[0]
     let actions = parseFile file
-    let finalCoord = getFinalCoordinates actions
 
-    let finalCoord2 = getFinalCoordinates2 actions
+    let finalCoord = 
+        actions 
+        |> Seq.fold updatePosition BoatState.Initial
+        |> fun boatState -> boatState.Coordinates
 
-    // let (x,y) = finalCoord
-    // printfn "x : %d y : %d" x y
+    let finalCoord2 = 
+        actions 
+        |> Seq.fold updatePosition2 {| BoatState = (0,0); WaypointState = (10,1)|}
+        |> fun state -> state.BoatState
 
+    
     finalCoord
     |> function (x,y) -> (abs x) + (abs y)
     |> printfn "Part 1 - Result %d" 
