@@ -2,13 +2,15 @@ open System.IO
 
 
 let countIncrease numberList =
-  Seq.zip numberList (Seq.tail numberList)
+  numberList
+  |> Seq.pairwise 
   |> Seq.filter (fun (x,y) -> y > x)
   |> Seq.length
   
-let countIncreaseWindow numberList =
-  Seq.zip3 numberList (Seq.tail numberList) (Seq.tail (Seq.tail numberList))
-  |> Seq.map (fun (x,y,z) -> x + y + z)
+let countIncreaseWindow numberList windowSize =
+  numberList
+  |> Seq.windowed windowSize
+  |> Seq.map Seq.sum
   |> countIncrease
 
 let readlines file =
@@ -19,7 +21,7 @@ let readlines file =
 let list = readlines "data/day01/input.txt"
 
 printfn "%d" (countIncrease list)
-printfn "%d" (countIncreaseWindow list)
+printfn "%d" (countIncreaseWindow list 3)
 
 
 
