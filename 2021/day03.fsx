@@ -3,7 +3,10 @@ open System.IO
 let maxValue map = map |> Map.toSeq |> Seq.maxBy (fun (_, value) -> value)
 let minValue map = map |> Map.toSeq |> Seq.minBy (fun (_, value) -> value)
 
+
 let binaryStringToInt str =  System.Convert.ToInt32(str, 2)
+let binaryCharSeqToInt (seq :seq<char>) = seq |> Seq.toArray |> System.String |> binaryStringToInt
+
 
 let getBitCounts list = 
   let len = Seq.length (Seq.head list)
@@ -20,8 +23,8 @@ let getBitCounts list =
 let getGammaEpsilon list =
   let bitCounts = list |> getBitCounts
   // This could probably be cleaner, lol
-  let gamma = bitCounts |> Seq.map maxValue |> Seq.map fst |> Seq.toArray |> System.String |> binaryStringToInt
-  let epsilon = bitCounts |> Seq.map minValue |> Seq.map fst |> Seq.toArray |> System.String |> binaryStringToInt
+  let gamma = bitCounts |> Seq.map maxValue |> Seq.map fst |> binaryCharSeqToInt
+  let epsilon = bitCounts |> Seq.map minValue |> Seq.map fst |> binaryCharSeqToInt
   (gamma, epsilon)
 
 let invertBit bit = match bit with '0' -> '1' | '1' -> '0'
@@ -39,7 +42,7 @@ let getCO2andOxygen list =
 
   let rec getCO2andOxygenHelper bitFunction position remaining =
     match remaining |> Seq.toList with 
-    | [el] -> el |> Seq.toArray |> System.String |> binaryStringToInt
+    | [el] -> el |> binaryCharSeqToInt
     | lst -> 
       let bit = remaining |> Seq.map (Seq.skip position) |> bitFunction
 
